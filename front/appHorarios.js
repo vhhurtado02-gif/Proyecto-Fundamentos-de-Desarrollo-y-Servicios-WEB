@@ -12,7 +12,14 @@ const URL_API = "http://127.0.0.1:8080/api/horarios";
 
 const DATOS_CIAF = {
   "Facultad de Ingeniería": {
- 
+    "Ingeniería de Sistemas": [
+      "Programación y Servicios WEB",
+      "Bases de Datos",
+      "Redes y Comunicaciones",
+      "Ingeniería de Software",
+      "Sistemas Operativos",
+      "Algoritmos y Programación",
+    ],
     "Ingeniería Electrónica": [
       "Circuitos Eléctricos",
       "Electrónica Analógica",
