@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────────────────────
 // CONSTANTES Y DATOS INSTITUCIONALES CIAF
 // ──────────────────────────────────────────────────────────────
-const URL_API = "http://127.0.0.1:8080/api/horarios";
+const URL_API = "/api/horarios";
 
 const DATOS_CIAF = {
   "Facultad de Ingeniería": {
