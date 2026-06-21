@@ -1,15 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/horarios.js": { "runtime": "@vercel/node" },
-    "api/health.js": { "runtime": "@vercel/node" },
-    "api/conexionBD.js": { "runtime": "@vercel/node" },
-    "api/sanitizador.js": { "runtime": "@vercel/node" }
-  },
   "routes": [
     { "src": "/api/horarios(.*)", "dest": "/api/horarios.js" },
     { "src": "/api/health", "dest": "/api/health.js" },
-    { "src": "/front/(.*)", "dest": "/front/$1" },
-    { "src": "/", "dest": "/front/index.html" }
+    { "src": "/", "dest": "/front/index.html" },
+    { "src": "/front/(.*)", "dest": "/front/$1" }
   ]
 }
