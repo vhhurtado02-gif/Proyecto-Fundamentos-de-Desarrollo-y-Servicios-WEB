@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/*.js", "use": "@vercel/node" },
+    { "src": "Frente/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/api/horarios", "dest": "/api/horarios.js" },
+    { "src": "/(.*)", "dest": "/Frente/$1" }
+  ]
+}
