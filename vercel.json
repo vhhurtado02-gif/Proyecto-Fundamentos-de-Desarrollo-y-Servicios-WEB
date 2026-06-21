@@ -3,7 +3,7 @@
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health.js" },
     { "source": "/api/horarios", "destination": "/api/horarios.js" },
-    { "source": "/", "destination": "/Frente/index.html" },
-    { "source": "/(.*)", "destination": "/Frente/$1" }
+    { "source": "/", "destination": "/front/index.html" },
+    { "source": "/(.*)", "destination": "/front/$1" }
   ]
 }
