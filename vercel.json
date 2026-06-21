@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/api/health", "destination": "/api/health.js" },
-    { "source": "/api/horarios", "destination": "/api/horarios.js" },
-    { "source": "/", "destination": "/front/index.html" },
-    { "source": "/(.*)", "destination": "/front/$1" }
+  "functions": {
+    "api/horarios.js": { "runtime": "@vercel/node" },
+    "api/health.js": { "runtime": "@vercel/node" }
+  },
+  "routes": [
+    { "src": "/api/horarios(.*)", "dest": "/api/horarios.js" },
+    { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/(.*)", "dest": "/front/$1" }
   ]
 }
