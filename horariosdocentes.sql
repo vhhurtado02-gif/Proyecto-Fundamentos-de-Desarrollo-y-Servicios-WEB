@@ -1,0 +1,1 @@
+SELECT * FROM horariosdocentes.horarios_docentes;

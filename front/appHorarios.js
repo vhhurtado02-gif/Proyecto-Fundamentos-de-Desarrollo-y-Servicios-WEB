@@ -38,6 +38,8 @@ async function apiFetch(metodo, ruta, cuerpo) {
   return { estado: resp.status, datos };
 }
 
+let modoSoloLectura = false;
+
 function construirEstructuraBase() {
   const c = obtenerElemento("contenedorPrincipal");
   c.innerHTML = `
@@ -49,9 +51,10 @@ function construirEstructuraBase() {
       <div id="vistaMenu">
         <h2>Menú Principal</h2>
         <p id="guiaMenu">Selecciona una opcion del menu.</p>
+        <div id="avisoSoloLectura" style="display:none;background:#ff4444;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px;">🔒 Modo solo lectura — No se permiten cambios.</div>
         <div id="botonesMenu">
-          <button onclick="mostrarVistaCrear()">Crear horario</button>
-          <button onclick="mostrarVistaBorrar()">Borrar horario</button>
+          <button id="btnCrear" onclick="mostrarVistaCrear()">Crear horario</button>
+          <button id="btnBorrar" onclick="mostrarVistaBorrar()">Borrar horario</button>
           <button onclick="mostrarVistaListado()">Listado de horarios</button>
           <button onclick="mostrarVistaSalir()">Salir del programa</button>
         </div>
@@ -106,7 +109,15 @@ function ocultarTodasLasVistas() {
     const el = obtenerElemento(v); if (el) el.style.display = "none";
   });
 }
-function mostrarVistaMenu() { ocultarTodasLasVistas(); obtenerElemento("vistaMenu").style.display = "block"; estadoApp.vistaActual = "menu"; }
+function mostrarVistaMenu() {
+  ocultarTodasLasVistas(); obtenerElemento("vistaMenu").style.display = "block"; estadoApp.vistaActual = "menu";
+  const btnCrear = obtenerElemento("btnCrear");
+  const btnBorrar = obtenerElemento("btnBorrar");
+  const aviso = obtenerElemento("avisoSoloLectura");
+  if (btnCrear) btnCrear.style.display = modoSoloLectura ? "none" : "block";
+  if (btnBorrar) btnBorrar.style.display = modoSoloLectura ? "none" : "block";
+  if (aviso) aviso.style.display = modoSoloLectura ? "block" : "none";
+}
 function mostrarVistaCrear() { ocultarTodasLasVistas(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear"; }
 function mostrarVistaBorrar() { ocultarTodasLasVistas(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
 function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; }
@@ -169,6 +180,14 @@ async function ejecutarListado() {
   try {
     const r = await apiFetch("GET","",null);
     if (!r.datos.ok) { resumen.textContent = "Error al cargar."; return; }
+    // Detectar modo solo lectura desde la API
+    modoSoloLectura = r.datos.soloLectura === true;
+    const btnCrear = obtenerElemento("btnCrear");
+    const btnBorrar = obtenerElemento("btnBorrar");
+    const aviso = obtenerElemento("avisoSoloLectura");
+    if (btnCrear) btnCrear.style.display = modoSoloLectura ? "none" : "block";
+    if (btnBorrar) btnBorrar.style.display = modoSoloLectura ? "none" : "block";
+    if (aviso) aviso.style.display = modoSoloLectura ? "block" : "none";
     let lista = r.datos.datos||[];
     if (busqueda) lista = lista.filter(function(h){ return (h.docente+h.facultad+h.carrera+h.materia).toLowerCase().includes(busqueda); });
     resumen.textContent = "Registros: "+lista.length;

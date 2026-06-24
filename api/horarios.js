@@ -9,16 +9,23 @@ module.exports = async (req, res) => {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
+  const soloLectura = process.env.MODO_SOLO_LECTURA === "true";
+
   // GET — listar todos
   if (req.method === "GET") {
     try {
       const [filas] = await poolConexion.query(
         "SELECT * FROM horarios_docentes ORDER BY fechaClase ASC, horaIniciaClase ASC"
       );
-      return res.status(200).json({ ok: true, datos: filas });
+      return res.status(200).json({ ok: true, datos: filas, soloLectura });
     } catch (err) {
       return res.status(500).json({ ok: false, mensaje: "Error al obtener horarios." });
     }
+  }
+
+  // Bloquear POST y DELETE en modo solo lectura
+  if (soloLectura && (req.method === "POST" || req.method === "DELETE")) {
+    return res.status(403).json({ ok: false, mensaje: "La app está en modo solo lectura. No se permiten cambios." });
   }
 
   // POST — crear nuevo
