@@ -3,13 +3,17 @@ const { poolConexion } = require("./conexionBD");
 const { sanitizarTexto } = require("./sanitizador");
 
 async function obtenerConfig() {
+  // Si MODO_SOLO_LECTURA está activo en Vercel, bloquea todo
+  if (process.env.MODO_SOLO_LECTURA === "true") {
+    return { permitir_crear: false, permitir_borrar: false, forzado: true };
+  }
   try {
     const [filas] = await poolConexion.query("SELECT clave, valor FROM app_config");
-    const config = { permitir_crear: true, permitir_borrar: true };
+    const config = { permitir_crear: true, permitir_borrar: true, forzado: false };
     filas.forEach(f => config[f.clave] = f.valor === "true");
     return config;
   } catch {
-    return { permitir_crear: true, permitir_borrar: true };
+    return { permitir_crear: true, permitir_borrar: true, forzado: false };
   }
 }
 
