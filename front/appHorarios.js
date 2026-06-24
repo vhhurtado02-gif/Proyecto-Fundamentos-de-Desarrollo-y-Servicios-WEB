@@ -213,15 +213,25 @@ function aplicarEstilos() {
   document.head.appendChild(s);
 }
 
+async function actualizarPermisos() {
+  try {
+    const r = await apiFetch("GET", "", null);
+    if (r.datos && r.datos.config) {
+      const btnCrear = obtenerElemento("btnCrear");
+      const btnBorrar = obtenerElemento("btnBorrar");
+      const aviso = obtenerElemento("avisoSoloLectura");
+      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
+      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
+      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
+      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
+    }
+  } catch(e) {}
+}
+
 (async function iniciarApp() {
   aplicarEstilos();
   construirEstructuraBase();
-  // Detectar modo solo lectura al iniciar
-  try {
-    const r = await apiFetch("GET", "", null);
-    if (r.datos && typeof r.datos.soloLectura !== "undefined") {
-      modoSoloLectura = r.datos.soloLectura === true;
-    }
-  } catch(e) {}
-  mostrarVistaMenu();
+  await mostrarVistaMenu();
+  // Verificar permisos cada 5 segundos automáticamente
+  setInterval(actualizarPermisos, 5000);
 })();
