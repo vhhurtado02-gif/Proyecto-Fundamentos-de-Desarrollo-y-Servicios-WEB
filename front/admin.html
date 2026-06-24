@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Control | CIAF Admin</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #fff; margin: 0; padding: 0; }
+    #cabecera { background: #000; padding: 16px 24px; }
+    #cabecera h1 { margin: 0; font-size: 1.3em; color: #fff; }
+    #cabecera p { margin: 4px 0 0; color: #aaa; font-size: .9em; }
+    #contenido { max-width: 500px; margin: 40px auto; padding: 0 20px; }
+    #loginPanel, #adminPanel { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 24px; }
+    input[type=password], input[type=text] { font-family: monospace; font-size: 1em; padding: 8px 12px; width: 100%; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #555; border-radius: 4px; margin-top: 6px; }
+    button { font-family: monospace; font-size: 1em; padding: 10px 24px; background: #4a4aef; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-top: 12px; width: 100%; }
+    button:hover { background: #3333cc; }
+    #mensaje { margin-top: 10px; font-weight: bold; min-height: 20px; }
+    .switch-row { display: flex; align-items: center; justify-content: space-between; margin: 20px 0; padding: 16px; background: #222; border-radius: 6px; }
+    .switch-row label { font-size: 1.1em; }
+    .switch { position: relative; display: inline-block; width: 56px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #555; border-radius: 28px; transition: .3s; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background: #fff; border-radius: 50%; transition: .3s; }
+    input:checked + .slider { background: #4a4aef; }
+    input:checked + .slider:before { transform: translateX(28px); }
+    .estado { font-size: .85em; color: #aaa; margin-top: 4px; }
+    h2 { margin-top: 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    #btnGuardar { background: #05a305; }
+    #btnGuardar:hover { background: #038003; }
+  </style>
+</head>
+<body>
+  <div id="cabecera">
+    <h1>⚙️ Panel de Control — CIAF Admin</h1>
+    <p>Controla los permisos de la app en tiempo real</p>
+  </div>
+  <div id="contenido">
+
+    <!-- Login -->
+    <div id="loginPanel">
+      <h2>🔑 Acceso restringido</h2>
+      <label>Clave de administrador:</label>
+      <input type="password" id="inputClave" placeholder="Ingresa la clave..." />
+      <button onclick="iniciarSesion()">Entrar</button>
+      <div id="mensajeLogin" style="color:#ff4444;margin-top:10px;"></div>
+    </div>
+
+    <!-- Panel admin (oculto hasta login) -->
+    <div id="adminPanel" style="display:none;">
+      <h2>🎛️ Control de permisos</h2>
+
+      <div class="switch-row">
+        <div>
+          <label>Crear horarios</label>
+          <div class="estado" id="estadoCrear"></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="switchCrear" onchange="guardarCambios()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <label>Borrar horarios</label>
+          <div class="estado" id="estadoBorrar"></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="switchBorrar" onchange="guardarCambios()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="mensajeAdmin" style="color:#05f305;margin-top:10px;text-align:center;"></div>
+    </div>
+
+  </div>
+
+  <script>
+    let claveAdmin = "";
+
+    async function iniciarSesion() {
+      claveAdmin = document.getElementById("inputClave").value;
+      const r = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear: true, permitir_borrar: true })
+      });
+      const datos = await r.json();
+      if (r.status === 401) {
+        document.getElementById("mensajeLogin").textContent = "❌ Clave incorrecta.";
+        return;
+      }
+      document.getElementById("loginPanel").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      cargarEstado();
+    }
+
+    async function cargarEstado() {
+      const r = await fetch("/api/admin");
+      const datos = await r.json();
+      if (!datos.ok) return;
+      const { permitir_crear, permitir_borrar } = datos.config;
+      document.getElementById("switchCrear").checked = permitir_crear;
+      document.getElementById("switchBorrar").checked = permitir_borrar;
+      actualizarEtiquetas();
+    }
+
+    async function guardarCambios() {
+      actualizarEtiquetas();
+      const permitir_crear = document.getElementById("switchCrear").checked;
+      const permitir_borrar = document.getElementById("switchBorrar").checked;
+      const r = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear, permitir_borrar })
+      });
+      const datos = await r.json();
+      const msg = document.getElementById("mensajeAdmin");
+      msg.textContent = datos.ok ? "✅ Guardado." : "❌ Error al guardar.";
+      setTimeout(() => msg.textContent = "", 2000);
+    }
+
+    function actualizarEtiquetas() {
+      const crear = document.getElementById("switchCrear").checked;
+      const borrar = document.getElementById("switchBorrar").checked;
+      document.getElementById("estadoCrear").textContent = crear ? "✅ Permitido" : "🔒 Bloqueado";
+      document.getElementById("estadoBorrar").textContent = borrar ? "✅ Permitido" : "🔒 Bloqueado";
+    }
+
+    document.getElementById("inputClave").addEventListener("keydown", e => {
+      if (e.key === "Enter") iniciarSesion();
+    });
+  </script>
+</body>
+</html>

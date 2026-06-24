@@ -3,6 +3,8 @@
   "routes": [
     { "src": "/api/horarios(.*)", "dest": "/api/horarios.js" },
     { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/api/admin", "dest": "/api/admin.js" },
+    { "src": "/admin", "dest": "/front/admin.html" },
     { "src": "/", "dest": "/front/index.html" },
     { "src": "/front/(.*)", "dest": "/front/$1" }
   ]

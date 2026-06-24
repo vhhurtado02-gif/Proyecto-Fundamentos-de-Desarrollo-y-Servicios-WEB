@@ -109,14 +109,20 @@ function ocultarTodasLasVistas() {
     const el = obtenerElemento(v); if (el) el.style.display = "none";
   });
 }
-function mostrarVistaMenu() {
+async function mostrarVistaMenu() {
   ocultarTodasLasVistas(); obtenerElemento("vistaMenu").style.display = "block"; estadoApp.vistaActual = "menu";
-  const btnCrear = obtenerElemento("btnCrear");
-  const btnBorrar = obtenerElemento("btnBorrar");
-  const aviso = obtenerElemento("avisoSoloLectura");
-  if (btnCrear) btnCrear.style.display = modoSoloLectura ? "none" : "block";
-  if (btnBorrar) btnBorrar.style.display = modoSoloLectura ? "none" : "block";
-  if (aviso) aviso.style.display = modoSoloLectura ? "block" : "none";
+  try {
+    const r = await apiFetch("GET", "", null);
+    if (r.datos && r.datos.config) {
+      const btnCrear = obtenerElemento("btnCrear");
+      const btnBorrar = obtenerElemento("btnBorrar");
+      const aviso = obtenerElemento("avisoSoloLectura");
+      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
+      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
+      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
+      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
+    }
+  } catch(e) {}
 }
 function mostrarVistaCrear() { ocultarTodasLasVistas(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear"; }
 function mostrarVistaBorrar() { ocultarTodasLasVistas(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
@@ -180,14 +186,17 @@ async function ejecutarListado() {
   try {
     const r = await apiFetch("GET","",null);
     if (!r.datos.ok) { resumen.textContent = "Error al cargar."; return; }
-    // Detectar modo solo lectura desde la API
-    modoSoloLectura = r.datos.soloLectura === true;
-    const btnCrear = obtenerElemento("btnCrear");
-    const btnBorrar = obtenerElemento("btnBorrar");
-    const aviso = obtenerElemento("avisoSoloLectura");
-    if (btnCrear) btnCrear.style.display = modoSoloLectura ? "none" : "block";
-    if (btnBorrar) btnBorrar.style.display = modoSoloLectura ? "none" : "block";
-    if (aviso) aviso.style.display = modoSoloLectura ? "block" : "none";
+    // Detectar permisos desde la API
+    if (r.datos.config) {
+      modoSoloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
+      const btnCrear = obtenerElemento("btnCrear");
+      const btnBorrar = obtenerElemento("btnBorrar");
+      const aviso = obtenerElemento("avisoSoloLectura");
+      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
+      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
+      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
+      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
+    }
     let lista = r.datos.datos||[];
     if (busqueda) lista = lista.filter(function(h){ return (h.docente+h.facultad+h.carrera+h.materia).toLowerCase().includes(busqueda); });
     resumen.textContent = "Registros: "+lista.length;

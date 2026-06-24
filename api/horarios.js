@@ -2,6 +2,17 @@
 const { poolConexion } = require("./conexionBD");
 const { sanitizarTexto } = require("./sanitizador");
 
+async function obtenerConfig() {
+  try {
+    const [filas] = await poolConexion.query("SELECT clave, valor FROM app_config");
+    const config = { permitir_crear: true, permitir_borrar: true };
+    filas.forEach(f => config[f.clave] = f.valor === "true");
+    return config;
+  } catch {
+    return { permitir_crear: true, permitir_borrar: true };
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
@@ -9,7 +20,7 @@ module.exports = async (req, res) => {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const soloLectura = process.env.MODO_SOLO_LECTURA === "true";
+  const config = await obtenerConfig();
 
   // GET — listar todos
   if (req.method === "GET") {
@@ -17,19 +28,17 @@ module.exports = async (req, res) => {
       const [filas] = await poolConexion.query(
         "SELECT * FROM horarios_docentes ORDER BY fechaClase ASC, horaIniciaClase ASC"
       );
-      return res.status(200).json({ ok: true, datos: filas, soloLectura });
+      return res.status(200).json({ ok: true, datos: filas, config });
     } catch (err) {
       return res.status(500).json({ ok: false, mensaje: "Error al obtener horarios." });
     }
   }
 
-  // Bloquear POST y DELETE en modo solo lectura
-  if (soloLectura && (req.method === "POST" || req.method === "DELETE")) {
-    return res.status(403).json({ ok: false, mensaje: "La app está en modo solo lectura. No se permiten cambios." });
-  }
-
   // POST — crear nuevo
   if (req.method === "POST") {
+    if (!config.permitir_crear) {
+      return res.status(403).json({ ok: false, mensaje: "Crear horarios está desactivado." });
+    }
     const { docente, facultad, carrera, materia, fechaClase, horaIniciaClase, horaTerminaClase } = req.body;
     if (!docente || !facultad || !carrera || !materia || !fechaClase || !horaIniciaClase || !horaTerminaClase) {
       return res.status(400).json({ ok: false, mensaje: "Todos los campos son obligatorios." });
@@ -47,6 +56,9 @@ module.exports = async (req, res) => {
 
   // DELETE — eliminar por id
   if (req.method === "DELETE") {
+    if (!config.permitir_borrar) {
+      return res.status(403).json({ ok: false, mensaje: "Borrar horarios está desactivado." });
+    }
     const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
     const id = searchParams.get("id");
     if (!id) return res.status(400).json({ ok: false, mensaje: "ID requerido." });
