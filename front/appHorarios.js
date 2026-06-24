@@ -204,4 +204,15 @@ function aplicarEstilos() {
   document.head.appendChild(s);
 }
 
-(function iniciarApp() { aplicarEstilos(); construirEstructuraBase(); mostrarVistaMenu(); })();
+(async function iniciarApp() {
+  aplicarEstilos();
+  construirEstructuraBase();
+  // Detectar modo solo lectura al iniciar
+  try {
+    const r = await apiFetch("GET", "", null);
+    if (r.datos && typeof r.datos.soloLectura !== "undefined") {
+      modoSoloLectura = r.datos.soloLectura === true;
+    }
+  } catch(e) {}
+  mostrarVistaMenu();
+})();
