@@ -50,7 +50,7 @@ function construirEstructuraBase() {
     <div id="areaPrincipal">
       <div id="vistaMenu">
         <h2>Menú Principal</h2>
-        <p id="guiaMenu">Selecciona una opcion del menu.</p>
+        <p id="guiaMenu">Selecciona una opcion del menú.</p>
         <div id="avisoSoloLectura" style="display:none;background:#ff4444;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px;">🔒 Modo solo lectura — No se permiten cambios.</div>
         <div id="botonesMenu">
           <button id="btnCrear" onclick="mostrarVistaCrear()">Crear horario</button>
@@ -100,7 +100,7 @@ function construirEstructuraBase() {
         <button onclick="mostrarVistaMenu()">Volver al menú</button>
       </div>
     </div>
-    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programacion y Servicios WEB IV SEMESTRE</p></div>
+    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programación y Servicios WEB IV SEMESTRE</p><p><h2>VHHM</h2></p></div>
   `;
 }
 
