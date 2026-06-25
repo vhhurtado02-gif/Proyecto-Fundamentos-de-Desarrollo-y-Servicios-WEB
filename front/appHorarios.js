@@ -217,6 +217,12 @@ async function ejecutarListado() {
     // Ordenar si hay campo seleccionado
     if (ordenTabla.campo) {
       lista = lista.slice().sort(function(a, b) {
+        const camposNumericos = ["idHorario"];
+        if (camposNumericos.indexOf(ordenTabla.campo) !== -1) {
+          const na = parseFloat(a[ordenTabla.campo]) || 0;
+          const nb = parseFloat(b[ordenTabla.campo]) || 0;
+          return ordenTabla.asc ? na - nb : nb - na;
+        }
         const va = String(a[ordenTabla.campo]||"").toLowerCase();
         const vb = String(b[ordenTabla.campo]||"").toLowerCase();
         if (va < vb) return ordenTabla.asc ? -1 : 1;
