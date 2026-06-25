@@ -87,7 +87,7 @@ function construirEstructuraBase() {
         <h2>Listado de Horarios</h2>
         <div id="controlesListado">
           <label>Búsqueda:</label>
-          <input type="text" id="inputBusqueda" placeholder="Texto a buscar..." />
+          <select id="selectCampoBusqueda"><option value="todos">Todos</option><option value="idHorario">ID</option><option value="docente">Docente</option><option value="facultad">Facultad</option><option value="carrera">Carrera</option><option value="materia">Materia</option><option value="fechaClase">Fecha</option><option value="horaIniciaClase">Inicia</option><option value="horaTerminaClase">Termina</option></select><input type="text" id="inputBusqueda" placeholder="Texto a buscar..." />
           <button onclick="ejecutarListado()">Buscar</button>
           <button onclick="mostrarVistaMenu()">Cerrar</button>
         </div>
@@ -181,7 +181,7 @@ async function ejecutarBorrarHorario() {
 
 async function ejecutarListado() {
   const resumen = obtenerElemento("resumenListado"); const contenedor = obtenerElemento("tablaListadoContenedor");
-  const busqueda = (obtenerElemento("inputBusqueda").value||"").toLowerCase().trim();
+  const busqueda = (obtenerElemento("inputBusqueda").value||"").toLowerCase().trim(); const campoBusqueda = (obtenerElemento("selectCampoBusqueda") && obtenerElemento("selectCampoBusqueda").value) || "todos";
   resumen.textContent = "Cargando..."; contenedor.innerHTML = "";
   try {
     const r = await apiFetch("GET","",null);
@@ -198,7 +198,7 @@ async function ejecutarListado() {
       if (aviso) aviso.style.display = soloLectura ? "block" : "none";
     }
     let lista = r.datos.datos||[];
-    if (busqueda) lista = lista.filter(function(h){ return (h.docente+h.facultad+h.carrera+h.materia).toLowerCase().includes(busqueda); });
+    if (busqueda) lista = lista.filter(function(h){ if (campoBusqueda === "todos") return (String(h.idHorario)+h.docente+h.facultad+h.carrera+h.materia+String(h.fechaClase)+String(h.horaIniciaClase)+String(h.horaTerminaClase)).toLowerCase().includes(busqueda); return String(h[campoBusqueda]).toLowerCase().includes(busqueda); });
     resumen.textContent = "Registros: "+lista.length;
     if (lista.length===0) { contenedor.innerHTML = "<p>No se encontraron registros.</p>"; return; }
     let html = "<table id='tablaHorarios' border='1' cellpadding='6' cellspacing='0'><thead><tr><th>ID</th><th>Docente</th><th>Facultad</th><th>Carrera</th><th>Materia</th><th>Fecha</th><th>Inicia</th><th>Termina</th></tr></thead><tbody>";
