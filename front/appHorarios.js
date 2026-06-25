@@ -100,7 +100,7 @@ function construirEstructuraBase() {
         <button onclick="mostrarVistaMenu()">Volver al menú</button>
       </div>
     </div>
-    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programación y Servicios WEB IV SEMESTRE</p><p>VHHM</p></div>
+    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programación y Servicios WEB IV SEMESTRE</p><p><h2>VHHM</h2></p></div>
   `;
 }
 
