@@ -21,6 +21,7 @@ const DATOS_CIAF = {
 };
 
 const estadoApp = { vistaActual: "menu", idHorarioCargado: null };
+let ordenTabla = { campo: null, asc: true };
 
 function sanitizarTexto(v) { return !v ? "" : String(v).trim().replace(/[<>"'`;]/g,"").substring(0,255); }
 function obtenerElemento(id) { return document.getElementById(id); }
@@ -87,7 +88,8 @@ function construirEstructuraBase() {
         <h2>Listado de Horarios</h2>
         <div id="controlesListado">
           <label>Búsqueda:</label>
-          <select id="selectCampoBusqueda" onchange="ejecutarListado()"><option value="todos">Todos</option><option value="idHorario">ID</option><option value="docente">Docente</option><option value="facultad">Facultad</option><option value="carrera">Carrera</option><option value="materia">Materia</option><option value="fechaClase">Fecha</option><option value="horaIniciaClase">Inicia</option><option value="horaTerminaClase">Termina</option></select><input type="text" id="inputBusqueda" placeholder="Texto a buscar..." oninput="ejecutarListado()" />
+          <select id="selectCampoBusqueda" onchange="ejecutarListado()"><option value="todos">Todos</option><option value="idHorario">ID</option><option value="docente">Docente</option><option value="facultad">Facultad</option><option value="carrera">Carrera</option><option value="materia">Materia</option><option value="fechaClase">Fecha</option><option value="horaIniciaClase">Inicia</option><option value="horaTerminaClase">Termina</option></select>
+          <input type="text" id="inputBusqueda" placeholder="Texto a buscar..." oninput="ejecutarListado()" />
           <button onclick="ejecutarListado()">Buscar</button>
           <button onclick="mostrarVistaMenu()">Cerrar</button>
         </div>
@@ -179,14 +181,24 @@ async function ejecutarBorrarHorario() {
   } catch(e) { mostrarMensaje("mensajeBorrar","Error de conexion con el servidor.",true); }
 }
 
+function ordenarPorCampo(campo) {
+  if (ordenTabla.campo === campo) {
+    ordenTabla.asc = !ordenTabla.asc;
+  } else {
+    ordenTabla.campo = campo;
+    ordenTabla.asc = true;
+  }
+  ejecutarListado();
+}
+
 async function ejecutarListado() {
   const resumen = obtenerElemento("resumenListado"); const contenedor = obtenerElemento("tablaListadoContenedor");
-  const busqueda = (obtenerElemento("inputBusqueda").value||"").toLowerCase().trim(); const campoBusqueda = (obtenerElemento("selectCampoBusqueda") && obtenerElemento("selectCampoBusqueda").value) || "todos";
+  const busqueda = (obtenerElemento("inputBusqueda").value||"").toLowerCase().trim();
+  const campoBusqueda = (obtenerElemento("selectCampoBusqueda") && obtenerElemento("selectCampoBusqueda").value) || "todos";
   resumen.textContent = "Cargando..."; contenedor.innerHTML = "";
   try {
     const r = await apiFetch("GET","",null);
     if (!r.datos.ok) { resumen.textContent = "Error al cargar."; return; }
-    // Detectar permisos desde la API
     if (r.datos.config) {
       modoSoloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
       const btnCrear = obtenerElemento("btnCrear");
@@ -198,10 +210,39 @@ async function ejecutarListado() {
       if (aviso) aviso.style.display = soloLectura ? "block" : "none";
     }
     let lista = r.datos.datos||[];
-    if (busqueda) lista = lista.filter(function(h){ if (campoBusqueda === "todos") return (String(h.idHorario)+h.docente+h.facultad+h.carrera+h.materia+String(h.fechaClase)+String(h.horaIniciaClase)+String(h.horaTerminaClase)).toLowerCase().includes(busqueda); return String(h[campoBusqueda]).toLowerCase().includes(busqueda); });
+    if (busqueda) lista = lista.filter(function(h){
+      if (campoBusqueda === "todos") return (String(h.idHorario)+h.docente+h.facultad+h.carrera+h.materia+String(h.fechaClase)+String(h.horaIniciaClase)+String(h.horaTerminaClase)).toLowerCase().includes(busqueda);
+      return String(h[campoBusqueda]).toLowerCase().includes(busqueda);
+    });
+    // Ordenar si hay campo seleccionado
+    if (ordenTabla.campo) {
+      lista = lista.slice().sort(function(a, b) {
+        const va = String(a[ordenTabla.campo]||"").toLowerCase();
+        const vb = String(b[ordenTabla.campo]||"").toLowerCase();
+        if (va < vb) return ordenTabla.asc ? -1 : 1;
+        if (va > vb) return ordenTabla.asc ? 1 : -1;
+        return 0;
+      });
+    }
     resumen.textContent = "Registros: "+lista.length;
     if (lista.length===0) { contenedor.innerHTML = "<p>No se encontraron registros.</p>"; return; }
-    let html = "<table id='tablaHorarios' border='1' cellpadding='6' cellspacing='0'><thead><tr><th>ID</th><th>Docente</th><th>Facultad</th><th>Carrera</th><th>Materia</th><th>Fecha</th><th>Inicia</th><th>Termina</th></tr></thead><tbody>";
+    const cols = [
+      { label: "ID", campo: "idHorario" },
+      { label: "Docente", campo: "docente" },
+      { label: "Facultad", campo: "facultad" },
+      { label: "Carrera", campo: "carrera" },
+      { label: "Materia", campo: "materia" },
+      { label: "Fecha", campo: "fechaClase" },
+      { label: "Inicia", campo: "horaIniciaClase" },
+      { label: "Termina", campo: "horaTerminaClase" },
+    ];
+    let html = "<table id='tablaHorarios' border='1' cellpadding='6' cellspacing='0'><thead><tr>";
+    cols.forEach(function(col) {
+      const activo = ordenTabla.campo === col.campo;
+      const flecha = activo ? (ordenTabla.asc ? " ▲" : " ▼") : " ⇅";
+      html += "<th class='thOrdenable" + (activo ? " thActivo" : "") + "' onclick='ordenarPorCampo(\"" + col.campo + "\")'>" + col.label + "<span class='flechaOrden'>" + flecha + "</span></th>";
+    });
+    html += "</tr></thead><tbody>";
     lista.forEach(function(h){ html += "<tr><td>"+h.idHorario+"</td><td>"+h.docente+"</td><td>"+h.facultad+"</td><td>"+h.carrera+"</td><td>"+h.materia+"</td><td>"+String(h.fechaClase).substring(0,10)+"</td><td>"+String(h.horaIniciaClase).substring(0,5)+"</td><td>"+String(h.horaTerminaClase).substring(0,5)+"</td></tr>"; });
     html += "</tbody></table>"; contenedor.innerHTML = html;
   } catch(e) { resumen.textContent = "Error de conexion con el servidor."; }
@@ -209,7 +250,7 @@ async function ejecutarListado() {
 
 function aplicarEstilos() {
   const s = document.createElement("style");
-  s.textContent = `body{font-family:monospace;background-color:#4a4aef;color:#000;margin:0;padding:0}#cabeceraApp{background:#000;color:#fff;padding:16px 24px}#tituloPrincipal{margin:0;font-size:1.4em}#subtituloApp{margin:4px 0 0;font-size:.9em;color:#fff}#areaPrincipal{padding:16px;max-width:860px;margin:0 auto;box-sizing:border-box}h2{border-bottom:2px solid #000;padding-bottom:6px;margin-top:0;font-size:1.2em;color:#fff}#guiaMenu{font-style:italic;color:#fff}#botonesMenu button{display:block;width:100%;max-width:280px;margin:8px auto;padding:12px;font-size:1em;font-family:monospace;background:#000;color:#fff;border:none;cursor:pointer;box-sizing:border-box}.campoForm{margin-bottom:12px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}.campoForm label{font-weight:bold;width:100%;padding-top:0}.campoForm input,.campoForm select{font-family:monospace;font-size:.95em;padding:6px 8px;border:1px solid #999;width:100%;box-sizing:border-box}.areaMensaje{margin:10px 0;min-height:20px;font-weight:bold}.botonesAccion{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.botonesAccion button{font-family:monospace;font-size:1em;padding:10px 20px;cursor:pointer;border:none;flex:1 1 120px}.botonesAccion button:first-child{background:#000;color:#fff}.botonesAccion button:last-child{background:#888;color:#fff}#controlesListado{margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}#controlesListado label{font-weight:bold}#controlesListado select{font-family:monospace;padding:5px;flex:1 1 100px;min-width:80px}#controlesListado input{font-family:monospace;padding:5px;flex:2 1 150px;min-width:100px}#controlesListado button{font-family:monospace;padding:5px 12px;background:#003366;color:#fff;border:none;cursor:pointer;white-space:nowrap}#resumenListado{font-weight:bold;margin-bottom:10px;color:#003366}#tablaListadoContenedor{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}#tablaHorarios{border-collapse:collapse;width:100%;font-size:.85em;min-width:520px}#tablaHorarios thead{background:#000;color:#fff}#tablaHorarios tbody tr:nth-child(even){background:#fff}#tablaHorarios td,#tablaHorarios th{padding:6px 8px;text-align:left;white-space:nowrap}#piePagina{margin-top:40px;padding:12px 24px;background:#000;color:#fff;font-size:.8em;text-align:center}#avisoSoloLectura{background:#ff4444;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px}@media(min-width:600px){  #areaPrincipal{padding:24px}  .campoForm{flex-wrap:nowrap;align-items:flex-start}  .campoForm label{width:200px;flex-shrink:0;padding-top:6px}  .campoForm input,.campoForm select{width:auto;flex:1}  #botonesMenu button{width:220px}}@media(max-width:400px){  #tituloPrincipal{font-size:1.1em}  #tablaHorarios{font-size:.75em}  #tablaHorarios td,#tablaHorarios th{padding:4px 5px}}`;
+  s.textContent = `body{font-family:monospace;background-color:#4a4aef;color:#000;margin:0;padding:0}#cabeceraApp{background:#000;color:#fff;padding:16px 24px}#tituloPrincipal{margin:0;font-size:1.4em}#subtituloApp{margin:4px 0 0;font-size:.9em;color:#fff}#areaPrincipal{padding:16px;max-width:860px;margin:0 auto;box-sizing:border-box}h2{border-bottom:2px solid #000;padding-bottom:6px;margin-top:0;font-size:1.2em;color:#fff}#guiaMenu{font-style:italic;color:#fff}#botonesMenu button{display:block;width:100%;max-width:280px;margin:8px auto;padding:12px;font-size:1em;font-family:monospace;background:#000;color:#fff;border:none;cursor:pointer;box-sizing:border-box}.campoForm{margin-bottom:12px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}.campoForm label{font-weight:bold;width:100%;padding-top:0}.campoForm input,.campoForm select{font-family:monospace;font-size:.95em;padding:6px 8px;border:1px solid #999;width:100%;box-sizing:border-box}.areaMensaje{margin:10px 0;min-height:20px;font-weight:bold}.botonesAccion{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.botonesAccion button{font-family:monospace;font-size:1em;padding:10px 20px;cursor:pointer;border:none;flex:1 1 120px}.botonesAccion button:first-child{background:#000;color:#fff}.botonesAccion button:last-child{background:#888;color:#fff}#controlesListado{margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}#controlesListado label{font-weight:bold}#controlesListado select{font-family:monospace;padding:5px;flex:1 1 100px;min-width:80px}#controlesListado input{font-family:monospace;padding:5px;flex:2 1 150px;min-width:100px}#controlesListado button{font-family:monospace;padding:5px 12px;background:#003366;color:#fff;border:none;cursor:pointer;white-space:nowrap}#resumenListado{font-weight:bold;margin-bottom:10px;color:#003366}#tablaListadoContenedor{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}#tablaHorarios{border-collapse:collapse;width:100%;font-size:.85em;min-width:520px}#tablaHorarios thead{background:#000;color:#fff}#tablaHorarios tbody tr:nth-child(even){background:#fff}#tablaHorarios td,#tablaHorarios th{padding:6px 8px;text-align:left;white-space:nowrap}.thOrdenable{cursor:pointer;user-select:none}.thOrdenable:hover{background:#222}.thActivo{background:#003366}.flechaOrden{margin-left:4px;font-size:.8em;opacity:.8}#piePagina{margin-top:40px;padding:12px 24px;background:#000;color:#fff;font-size:.8em;text-align:center}#avisoSoloLectura{background:#ff4444;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px}@media(min-width:600px){#areaPrincipal{padding:24px}.campoForm{flex-wrap:nowrap;align-items:flex-start}.campoForm label{width:200px;flex-shrink:0;padding-top:6px}.campoForm input,.campoForm select{width:auto;flex:1}#botonesMenu button{width:220px}}@media(max-width:400px){#tituloPrincipal{font-size:1.1em}#tablaHorarios{font-size:.75em}#tablaHorarios td,#tablaHorarios th{padding:4px 5px}}`;
   document.head.appendChild(s);
 }
 
@@ -232,6 +273,5 @@ async function actualizarPermisos() {
   aplicarEstilos();
   construirEstructuraBase();
   await mostrarVistaMenu();
-  // Verificar permisos cada 5 segundos automáticamente
   setInterval(actualizarPermisos, 5000);
 })();
