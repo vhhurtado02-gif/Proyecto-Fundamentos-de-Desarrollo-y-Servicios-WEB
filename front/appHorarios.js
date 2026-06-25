@@ -87,7 +87,7 @@ function construirEstructuraBase() {
         <h2>Listado de Horarios</h2>
         <div id="controlesListado">
           <label>Búsqueda:</label>
-          <select id="selectCampoBusqueda"><option value="todos">Todos</option><option value="idHorario">ID</option><option value="docente">Docente</option><option value="facultad">Facultad</option><option value="carrera">Carrera</option><option value="materia">Materia</option><option value="fechaClase">Fecha</option><option value="horaIniciaClase">Inicia</option><option value="horaTerminaClase">Termina</option></select><input type="text" id="inputBusqueda" placeholder="Texto a buscar..." />
+          <select id="selectCampoBusqueda" onchange="ejecutarListado()"><option value="todos">Todos</option><option value="idHorario">ID</option><option value="docente">Docente</option><option value="facultad">Facultad</option><option value="carrera">Carrera</option><option value="materia">Materia</option><option value="fechaClase">Fecha</option><option value="horaIniciaClase">Inicia</option><option value="horaTerminaClase">Termina</option></select><input type="text" id="inputBusqueda" placeholder="Texto a buscar..." oninput="ejecutarListado()" />
           <button onclick="ejecutarListado()">Buscar</button>
           <button onclick="mostrarVistaMenu()">Cerrar</button>
         </div>
