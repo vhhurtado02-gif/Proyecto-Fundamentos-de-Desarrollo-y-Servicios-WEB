@@ -258,11 +258,37 @@ async function mostrarVistaMenu() {
   } catch(e) {}
 }
 function mostrarVistaCrear() {
-  ocultarTodasLasVistas(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear";
+  ocultarTodasLasVistas();
+  obtenerElemento("crearDocente").value = "";
+  obtenerElemento("crearFacultad").value = "";
+  obtenerElemento("crearCarrera").innerHTML = '<option value="">-- Seleccione carrera --</option>';
+  obtenerElemento("crearMateria").innerHTML = '<option value="">-- Seleccione materia --</option>';
+  obtenerElemento("crearFechaClase").value = "";
+  obtenerElemento("crearHoraInicia").value = "";
+  obtenerElemento("crearHoraTermina").value = "";
+  cargarFacultades("crear");
+  obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear";
   establecerFechaMinima("crearFechaClase");
 }
-function mostrarVistaEditar() { ocultarTodasLasVistas(); obtenerElemento("vistaEditar").style.display = "block"; obtenerElemento("editarCampos").style.display = "none"; estadoApp.vistaActual = "editar"; }
-function mostrarVistaBorrar() { ocultarTodasLasVistas(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
+function mostrarVistaEditar() {
+  ocultarTodasLasVistas();
+  obtenerElemento("editarId").value = "";
+  obtenerElemento("editarDocente").value = "";
+  obtenerElemento("editarFacultad").value = "";
+  obtenerElemento("editarCarrera").innerHTML = '<option value="">-- Seleccione carrera --</option>';
+  obtenerElemento("editarMateria").innerHTML = '<option value="">-- Seleccione materia --</option>';
+  obtenerElemento("editarFechaClase").value = "";
+  obtenerElemento("editarHoraInicia").value = "";
+  obtenerElemento("editarHoraTermina").value = "";
+  obtenerElemento("editarCampos").style.display = "none";
+  estadoApp.idHorarioCargado = null;
+  obtenerElemento("vistaEditar").style.display = "block"; estadoApp.vistaActual = "editar";
+}
+function mostrarVistaBorrar() {
+  ocultarTodasLasVistas();
+  obtenerElemento("borrarId").value = "";
+  obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar";
+}
 function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; }
 function mostrarVistaListado() { ocultarTodasLasVistas(); obtenerElemento("vistaListado").style.display = "block"; estadoApp.vistaActual = "listado"; ejecutarListado(); }
 
