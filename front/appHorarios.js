@@ -153,9 +153,35 @@ async function mostrarVistaMenu() {
     if (r.datos && r.datos.config) aplicarEstadoBotones(r.datos.config);
   } catch(e) {}
 }
-function mostrarVistaCrear() { ocultarTodasLasVistas(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear"; }
-function mostrarVistaEditar() { ocultarTodasLasVistas(); obtenerElemento("vistaEditar").style.display = "block"; obtenerElemento("editarCampos").style.display = "none"; estadoApp.vistaActual = "editar"; }
-function mostrarVistaBorrar() { ocultarTodasLasVistas(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
+function obtenerFechaHoy() { return new Date().toISOString().split("T")[0]; }
+function limpiarFormularioCrear() {
+  obtenerElemento("crearDocente").value = "";
+  obtenerElemento("crearFacultad").innerHTML = '<option value="">-- Seleccione facultad --</option>';
+  obtenerElemento("crearCarrera").innerHTML = '<option value="">-- Seleccione carrera --</option>';
+  obtenerElemento("crearMateria").innerHTML = '<option value="">-- Seleccione materia --</option>';
+  const campoFecha = obtenerElemento("crearFechaClase");
+  campoFecha.value = ""; campoFecha.min = obtenerFechaHoy();
+  obtenerElemento("crearHoraInicia").value = "";
+  obtenerElemento("crearHoraTermina").value = "";
+  limpiarMensaje("mensajeCrear");
+}
+function limpiarFormularioEditar() {
+  obtenerElemento("editarId").value = "";
+  obtenerElemento("editarDocente").value = "";
+  obtenerElemento("editarFacultad").innerHTML = '<option value="">-- Seleccione facultad --</option>';
+  obtenerElemento("editarCarrera").innerHTML = '<option value="">-- Seleccione carrera --</option>';
+  obtenerElemento("editarMateria").innerHTML = '<option value="">-- Seleccione materia --</option>';
+  obtenerElemento("editarFechaClase").value = "";
+  obtenerElemento("editarHoraInicia").value = "";
+  obtenerElemento("editarHoraTermina").value = "";
+  obtenerElemento("editarCampos").style.display = "none";
+  estadoApp.idHorarioCargado = null;
+  limpiarMensaje("mensajeEditar");
+}
+function limpiarFormularioBorrar() { obtenerElemento("borrarId").value = ""; limpiarMensaje("mensajeBorrar"); }
+function mostrarVistaCrear() { ocultarTodasLasVistas(); limpiarFormularioCrear(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear"; }
+function mostrarVistaEditar() { ocultarTodasLasVistas(); limpiarFormularioEditar(); obtenerElemento("vistaEditar").style.display = "block"; estadoApp.vistaActual = "editar"; }
+function mostrarVistaBorrar() { ocultarTodasLasVistas(); limpiarFormularioBorrar(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
 function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; }
 function mostrarVistaListado() { ocultarTodasLasVistas(); obtenerElemento("vistaListado").style.display = "block"; estadoApp.vistaActual = "listado"; ejecutarListado(); }
 
@@ -178,6 +204,17 @@ function actualizarMaterias(prefijo) {
   mats.forEach(function(m) { const op = document.createElement("option"); op.value = m; op.textContent = m; selM.appendChild(op); });
 }
 
+function hayConflictoHorario(lista, docente, fechaClase, horaInicia, horaTermina, idExcluir) {
+  const toMin = function(h) { const p = String(h).substring(0,5).split(":"); return parseInt(p[0],10)*60+parseInt(p[1],10); };
+  const inicioNuevo = toMin(horaInicia); const finNuevo = toMin(horaTermina);
+  return lista.some(function(h) {
+    if (idExcluir && h.idHorario == idExcluir) return false;
+    if (String(h.docente).toLowerCase().trim() !== String(docente).toLowerCase().trim()) return false;
+    if (String(h.fechaClase).substring(0,10) !== String(fechaClase).substring(0,10)) return false;
+    const inicioExiste = toMin(h.horaIniciaClase); const finExiste = toMin(h.horaTerminaClase);
+    return inicioNuevo < finExiste && finNuevo > inicioExiste;
+  });
+}
 async function ejecutarCrearHorario() {
   limpiarMensaje("mensajeCrear");
   const docente = sanitizarTexto(obtenerElemento("crearDocente").value);
@@ -191,6 +228,10 @@ async function ejecutarCrearHorario() {
     mostrarMensaje("mensajeCrear","Debes completar todos los campos.",true); return;
   }
   try {
+    const chk = await apiFetch("GET","",null);
+    if (chk.datos.ok && hayConflictoHorario(chk.datos.datos||[], docente, fechaClase, horaIniciaClase, horaTerminaClase, null)) {
+      mostrarMensaje("mensajeCrear","Este docente ya tiene una clase en ese horario y fecha.",true); return;
+    }
     const r = await apiFetch("POST","",{docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase});
     if (r.datos.ok) { mostrarMensaje("mensajeCrear","Horario creado correctamente.",false); setTimeout(mostrarVistaMenu,2000); }
     else { mostrarMensaje("mensajeCrear",r.datos.mensaje||"Error al crear.",true); }
@@ -213,7 +254,7 @@ async function cargarHorarioParaEditar() {
     obtenerElemento("editarCarrera").value = h.carrera;
     actualizarMaterias("editar");
     obtenerElemento("editarMateria").value = h.materia;
-    obtenerElemento("editarFechaClase").value = String(h.fechaClase).substring(0,10);
+    const campoFechaEditar = obtenerElemento("editarFechaClase"); campoFechaEditar.min = obtenerFechaHoy(); campoFechaEditar.value = String(h.fechaClase).substring(0,10);
     obtenerElemento("editarHoraInicia").value = String(h.horaIniciaClase).substring(0,5);
     obtenerElemento("editarHoraTermina").value = String(h.horaTerminaClase).substring(0,5);
     obtenerElemento("editarCampos").style.display = "block";
@@ -237,6 +278,10 @@ async function ejecutarEditarHorario() {
     mostrarMensaje("mensajeEditar","Debes completar todos los campos.",true); return;
   }
   try {
+    const chk = await apiFetch("GET","",null);
+    if (chk.datos.ok && hayConflictoHorario(chk.datos.datos||[], docente, fechaClase, horaIniciaClase, horaTerminaClase, id)) {
+      mostrarMensaje("mensajeEditar","Este docente ya tiene una clase en ese horario y fecha.",true); return;
+    }
     const r = await apiFetch("PUT","?id="+id,{docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase});
     if (r.datos.ok) { mostrarMensaje("mensajeEditar","Horario actualizado correctamente.",false); setTimeout(mostrarVistaMenu,2000); }
     else { mostrarMensaje("mensajeEditar",r.datos.mensaje||"Error al actualizar.",true); }
