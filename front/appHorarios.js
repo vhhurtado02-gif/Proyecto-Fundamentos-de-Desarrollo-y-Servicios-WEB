@@ -463,13 +463,13 @@ function aplicarEstilos() {
       border-image: linear-gradient(90deg, #1e3a5f, #4a9eff, #1e3a5f) 1;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
-    .cabecera-contenido { display: flex; align-items: center; gap: 12px; max-width: 860px; margin: 0 auto; }
+    .cabecera-contenido { display: flex; align-items: center; gap: 12px; max-width: 1100px; margin: 0 auto; }
     .cabecera-logo { font-size: 1.8em; }
     #tituloPrincipal { margin: 0; font-size: 1.2em; color: #4a9eff; font-weight: 700; letter-spacing: 0.5px; }
     #subtituloApp { margin: 4px 0 0; font-size: 0.85em; color: #8ab4d4; }
 
     /* ── Area Principal ───────────────────── */
-    #areaPrincipal { padding: 20px 16px; max-width: 860px; margin: 0 auto; }
+    #areaPrincipal { padding: 20px 16px; max-width: 1100px; margin: 0 auto; }
     h2 {
       border-bottom: 2px solid #1e3a5f;
       padding-bottom: 10px;
@@ -706,12 +706,12 @@ function aplicarEstilos() {
       border-radius: 10px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
-    #tablaHorarios { border-collapse: collapse; width: 100%; font-size: 0.85em; min-width: 520px; }
+    #tablaHorarios { border-collapse: collapse; width: 100%; font-size: 0.9em; min-width: 700px; }
     #tablaHorarios thead { background: linear-gradient(135deg, #1e3a5f, #2d5a8e); color: #fff; }
     #tablaHorarios tbody tr { background: #0d1f35; color: #e0e6f0; transition: background 0.2s; }
     #tablaHorarios tbody tr:nth-child(even) { background: #112240; }
     #tablaHorarios tbody tr:hover { background: #1a3050; }
-    #tablaHorarios td, #tablaHorarios th { padding: 10px 12px; text-align: left; white-space: nowrap; border: 1px solid #1e3a5f; }
+    #tablaHorarios td, #tablaHorarios th { padding: 12px 16px; text-align: left; white-space: nowrap; border: 1px solid #1e3a5f; }
     .thOrdenable { cursor: pointer; user-select: none; transition: background 0.2s; }
     .thOrdenable:hover { background: rgba(45,90,142,0.8); }
     .thActivo { background: #2d5a8e; }
