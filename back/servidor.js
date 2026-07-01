@@ -17,8 +17,9 @@ const SERVIDOR_PUERTO = parseInt(process.env.PORT) || 8080;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos del front
+// Servir archivos estáticos del front (ruta raíz y /front/)
 app.use(express.static(path.join(__dirname, "../front")));
+app.use("/front", express.static(path.join(__dirname, "../front")));
 
 // ── Rutas API ──────────────────────────────────
 

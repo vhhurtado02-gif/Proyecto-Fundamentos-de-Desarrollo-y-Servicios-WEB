@@ -22,6 +22,7 @@ const DATOS_CIAF = {
 
 const estadoApp = { vistaActual: "menu", idHorarioCargado: null };
 let ordenTabla = { campo: null, asc: true };
+let configPermisos = { permitir_crear: true, permitir_borrar: true, permitir_editar: true };
 
 function sanitizarTexto(v) { return !v ? "" : String(v).trim().replace(/[<>"'`;]/g,"").substring(0,255); }
 function obtenerElemento(id) { return document.getElementById(id); }
@@ -51,10 +52,11 @@ function construirEstructuraBase() {
     <div id="areaPrincipal">
       <div id="vistaMenu">
         <h2>Menú Principal</h2>
-        <p id="guiaMenu">Selecciona una opcion del menú.</p>
-        <div id="avisoSoloLectura" style="display:none;background:#ff4444;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px;">🔒 Modo solo lectura — No se permiten cambios.</div>
+        <p id="guiaMenu">Selecciona una opción del menú.</p>
+        <div id="avisoSoloLectura" style="display:none;background:#8b1a1a;color:#fff;padding:8px 12px;margin-bottom:12px;font-weight:bold;border-radius:4px;border:1px solid #cc3333;">🔒 Modo solo lectura — No se permiten cambios.</div>
         <div id="botonesMenu">
           <button id="btnCrear" onclick="mostrarVistaCrear()">Crear horario</button>
+          <button id="btnEditar" onclick="mostrarVistaEditar()">Editar horario</button>
           <button id="btnBorrar" onclick="mostrarVistaBorrar()">Borrar horario</button>
           <button onclick="mostrarVistaListado()">Listado de horarios</button>
           <button onclick="mostrarVistaSalir()">Salir del programa</button>
@@ -72,6 +74,25 @@ function construirEstructuraBase() {
         <div id="mensajeCrear" class="areaMensaje"></div>
         <div class="botonesAccion">
           <button onclick="ejecutarCrearHorario()">Guardar</button>
+          <button onclick="mostrarVistaMenu()">Cancelar</button>
+        </div>
+      </div>
+      <div id="vistaEditar" style="display:none;">
+        <h2>Editar Horario</h2>
+        <div class="campoForm"><label>ID Horario:</label><input type="number" id="editarId" min="1" placeholder="Ingrese el ID a editar" /></div>
+        <button onclick="cargarHorarioParaEditar()" style="font-family:monospace;padding:6px 16px;background:#1e3a5f;color:#fff;border:1px solid #2d5a8e;cursor:pointer;margin-bottom:12px;">Cargar</button>
+        <div id="editarCampos" style="display:none;">
+          <div class="campoForm"><label>Docente:</label><input type="text" id="editarDocente" maxlength="150" /></div>
+          <div class="campoForm"><label>Facultad:</label><select id="editarFacultad" onchange="actualizarCarreras('editar')"><option value="">-- Seleccione --</option></select></div>
+          <div class="campoForm"><label>Carrera:</label><select id="editarCarrera" onchange="actualizarMaterias('editar')"><option value="">-- Seleccione --</option></select></div>
+          <div class="campoForm"><label>Materia:</label><select id="editarMateria"><option value="">-- Seleccione --</option></select></div>
+          <div class="campoForm"><label>Fecha Clase:</label><input type="date" id="editarFechaClase" /></div>
+          <div class="campoForm"><label>Hora Inicio:</label><input type="time" id="editarHoraInicia" /></div>
+          <div class="campoForm"><label>Hora Termina:</label><input type="time" id="editarHoraTermina" /></div>
+        </div>
+        <div id="mensajeEditar" class="areaMensaje"></div>
+        <div class="botonesAccion">
+          <button onclick="ejecutarEditarHorario()">Guardar cambios</button>
           <button onclick="mostrarVistaMenu()">Cancelar</button>
         </div>
       </div>
@@ -107,26 +128,33 @@ function construirEstructuraBase() {
 }
 
 function ocultarTodasLasVistas() {
-  ["vistaMenu","vistaCrear","vistaBorrar","vistaListado","vistaSalir"].forEach(function(v) {
+  ["vistaMenu","vistaCrear","vistaEditar","vistaBorrar","vistaListado","vistaSalir"].forEach(function(v) {
     const el = obtenerElemento(v); if (el) el.style.display = "none";
   });
 }
+
+function aplicarEstadoBotones(config) {
+  configPermisos = config;
+  const btnCrear = obtenerElemento("btnCrear");
+  const btnEditar = obtenerElemento("btnEditar");
+  const btnBorrar = obtenerElemento("btnBorrar");
+  const aviso = obtenerElemento("avisoSoloLectura");
+  if (btnCrear) btnCrear.style.display = config.permitir_crear ? "block" : "none";
+  if (btnEditar) btnEditar.style.display = config.permitir_editar ? "block" : "none";
+  if (btnBorrar) btnBorrar.style.display = config.permitir_borrar ? "block" : "none";
+  const soloLectura = !config.permitir_crear && !config.permitir_editar && !config.permitir_borrar;
+  if (aviso) aviso.style.display = soloLectura ? "block" : "none";
+}
+
 async function mostrarVistaMenu() {
   ocultarTodasLasVistas(); obtenerElemento("vistaMenu").style.display = "block"; estadoApp.vistaActual = "menu";
   try {
     const r = await apiFetch("GET", "", null);
-    if (r.datos && r.datos.config) {
-      const btnCrear = obtenerElemento("btnCrear");
-      const btnBorrar = obtenerElemento("btnBorrar");
-      const aviso = obtenerElemento("avisoSoloLectura");
-      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
-      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
-      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
-      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
-    }
+    if (r.datos && r.datos.config) aplicarEstadoBotones(r.datos.config);
   } catch(e) {}
 }
 function mostrarVistaCrear() { ocultarTodasLasVistas(); cargarFacultades("crear"); obtenerElemento("vistaCrear").style.display = "block"; estadoApp.vistaActual = "crear"; }
+function mostrarVistaEditar() { ocultarTodasLasVistas(); obtenerElemento("vistaEditar").style.display = "block"; obtenerElemento("editarCampos").style.display = "none"; estadoApp.vistaActual = "editar"; }
 function mostrarVistaBorrar() { ocultarTodasLasVistas(); obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar"; }
 function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; }
 function mostrarVistaListado() { ocultarTodasLasVistas(); obtenerElemento("vistaListado").style.display = "block"; estadoApp.vistaActual = "listado"; ejecutarListado(); }
@@ -169,6 +197,52 @@ async function ejecutarCrearHorario() {
   } catch(e) { mostrarMensaje("mensajeCrear","Error de conexion con el servidor.",true); }
 }
 
+async function cargarHorarioParaEditar() {
+  limpiarMensaje("mensajeEditar");
+  const id = parseInt(obtenerElemento("editarId").value, 10);
+  if (!id||id<=0) { mostrarMensaje("mensajeEditar","Ingresa un ID válido.",true); return; }
+  try {
+    const r = await apiFetch("GET","",null);
+    if (!r.datos.ok) { mostrarMensaje("mensajeEditar","Error al buscar.",true); return; }
+    const h = (r.datos.datos||[]).find(function(x){ return x.idHorario == id; });
+    if (!h) { mostrarMensaje("mensajeEditar","No se encontró un horario con ese ID.",true); return; }
+    cargarFacultades("editar");
+    obtenerElemento("editarDocente").value = h.docente;
+    obtenerElemento("editarFacultad").value = h.facultad;
+    actualizarCarreras("editar");
+    obtenerElemento("editarCarrera").value = h.carrera;
+    actualizarMaterias("editar");
+    obtenerElemento("editarMateria").value = h.materia;
+    obtenerElemento("editarFechaClase").value = String(h.fechaClase).substring(0,10);
+    obtenerElemento("editarHoraInicia").value = String(h.horaIniciaClase).substring(0,5);
+    obtenerElemento("editarHoraTermina").value = String(h.horaTerminaClase).substring(0,5);
+    obtenerElemento("editarCampos").style.display = "block";
+    estadoApp.idHorarioCargado = id;
+    mostrarMensaje("mensajeEditar","Horario cargado. Modifica los campos y guarda.",false);
+  } catch(e) { mostrarMensaje("mensajeEditar","Error de conexion con el servidor.",true); }
+}
+
+async function ejecutarEditarHorario() {
+  limpiarMensaje("mensajeEditar");
+  const id = estadoApp.idHorarioCargado;
+  if (!id) { mostrarMensaje("mensajeEditar","Primero carga un horario.",true); return; }
+  const docente = sanitizarTexto(obtenerElemento("editarDocente").value);
+  const facultad = sanitizarTexto(obtenerElemento("editarFacultad").value);
+  const carrera = sanitizarTexto(obtenerElemento("editarCarrera").value);
+  const materia = sanitizarTexto(obtenerElemento("editarMateria").value);
+  const fechaClase = sanitizarTexto(obtenerElemento("editarFechaClase").value);
+  const horaIniciaClase = sanitizarTexto(obtenerElemento("editarHoraInicia").value);
+  const horaTerminaClase = sanitizarTexto(obtenerElemento("editarHoraTermina").value);
+  if (!docente||!facultad||!carrera||!materia||!fechaClase||!horaIniciaClase||!horaTerminaClase) {
+    mostrarMensaje("mensajeEditar","Debes completar todos los campos.",true); return;
+  }
+  try {
+    const r = await apiFetch("PUT","?id="+id,{docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase});
+    if (r.datos.ok) { mostrarMensaje("mensajeEditar","Horario actualizado correctamente.",false); setTimeout(mostrarVistaMenu,2000); }
+    else { mostrarMensaje("mensajeEditar",r.datos.mensaje||"Error al actualizar.",true); }
+  } catch(e) { mostrarMensaje("mensajeEditar","Error de conexion con el servidor.",true); }
+}
+
 async function ejecutarBorrarHorario() {
   limpiarMensaje("mensajeBorrar");
   const id = parseInt(obtenerElemento("borrarId").value,10);
@@ -182,12 +256,7 @@ async function ejecutarBorrarHorario() {
 }
 
 function ordenarPorCampo(campo) {
-  if (ordenTabla.campo === campo) {
-    ordenTabla.asc = !ordenTabla.asc;
-  } else {
-    ordenTabla.campo = campo;
-    ordenTabla.asc = true;
-  }
+  if (ordenTabla.campo === campo) { ordenTabla.asc = !ordenTabla.asc; } else { ordenTabla.campo = campo; ordenTabla.asc = true; }
   ejecutarListado();
 }
 
@@ -199,54 +268,34 @@ async function ejecutarListado() {
   try {
     const r = await apiFetch("GET","",null);
     if (!r.datos.ok) { resumen.textContent = "Error al cargar."; return; }
-    if (r.datos.config) {
-      modoSoloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
-      const btnCrear = obtenerElemento("btnCrear");
-      const btnBorrar = obtenerElemento("btnBorrar");
-      const aviso = obtenerElemento("avisoSoloLectura");
-      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
-      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
-      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
-      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
-    }
+    if (r.datos.config) aplicarEstadoBotones(r.datos.config);
     let lista = r.datos.datos||[];
     if (busqueda) lista = lista.filter(function(h){
       if (campoBusqueda === "todos") return (String(h.idHorario)+h.docente+h.facultad+h.carrera+h.materia+String(h.fechaClase)+String(h.horaIniciaClase)+String(h.horaTerminaClase)).toLowerCase().includes(busqueda);
       return String(h[campoBusqueda]).toLowerCase().includes(busqueda);
     });
-    // Ordenar si hay campo seleccionado
     if (ordenTabla.campo) {
       lista = lista.slice().sort(function(a, b) {
-        const camposNumericos = ["idHorario"];
-        if (camposNumericos.indexOf(ordenTabla.campo) !== -1) {
-          const na = parseFloat(a[ordenTabla.campo]) || 0;
-          const nb = parseFloat(b[ordenTabla.campo]) || 0;
-          return ordenTabla.asc ? na - nb : nb - na;
+        if (["idHorario"].indexOf(ordenTabla.campo) !== -1) {
+          const na = parseFloat(a[ordenTabla.campo])||0; const nb = parseFloat(b[ordenTabla.campo])||0;
+          return ordenTabla.asc ? na-nb : nb-na;
         }
-        const va = String(a[ordenTabla.campo]||"").toLowerCase();
-        const vb = String(b[ordenTabla.campo]||"").toLowerCase();
-        if (va < vb) return ordenTabla.asc ? -1 : 1;
-        if (va > vb) return ordenTabla.asc ? 1 : -1;
-        return 0;
+        const va = String(a[ordenTabla.campo]||"").toLowerCase(); const vb = String(b[ordenTabla.campo]||"").toLowerCase();
+        if (va<vb) return ordenTabla.asc?-1:1; if (va>vb) return ordenTabla.asc?1:-1; return 0;
       });
     }
     resumen.textContent = "Registros: "+lista.length;
     if (lista.length===0) { contenedor.innerHTML = "<p>No se encontraron registros.</p>"; return; }
     const cols = [
-      { label: "ID", campo: "idHorario" },
-      { label: "Docente", campo: "docente" },
-      { label: "Facultad", campo: "facultad" },
-      { label: "Carrera", campo: "carrera" },
-      { label: "Materia", campo: "materia" },
-      { label: "Fecha", campo: "fechaClase" },
-      { label: "Inicia", campo: "horaIniciaClase" },
-      { label: "Termina", campo: "horaTerminaClase" },
+      {label:"ID",campo:"idHorario"},{label:"Docente",campo:"docente"},{label:"Facultad",campo:"facultad"},
+      {label:"Carrera",campo:"carrera"},{label:"Materia",campo:"materia"},{label:"Fecha",campo:"fechaClase"},
+      {label:"Inicia",campo:"horaIniciaClase"},{label:"Termina",campo:"horaTerminaClase"},
     ];
     let html = "<table id='tablaHorarios' border='1' cellpadding='6' cellspacing='0'><thead><tr>";
     cols.forEach(function(col) {
-      const activo = ordenTabla.campo === col.campo;
-      const flecha = activo ? (ordenTabla.asc ? " ▲" : " ▼") : " ⇅";
-      html += "<th class='thOrdenable" + (activo ? " thActivo" : "") + "' onclick='ordenarPorCampo(\"" + col.campo + "\")'>" + col.label + "<span class='flechaOrden'>" + flecha + "</span></th>";
+      const activo = ordenTabla.campo===col.campo;
+      const flecha = activo?(ordenTabla.asc?" ▲":" ▼"):" ⇅";
+      html += "<th class='thOrdenable"+(activo?" thActivo":"")+"' onclick='ordenarPorCampo(\""+col.campo+"\")'>"+ col.label+"<span class='flechaOrden'>"+flecha+"</span></th>";
     });
     html += "</tr></thead><tbody>";
     lista.forEach(function(h){ html += "<tr><td>"+h.idHorario+"</td><td>"+h.docente+"</td><td>"+h.facultad+"</td><td>"+h.carrera+"</td><td>"+h.materia+"</td><td>"+String(h.fechaClase).substring(0,10)+"</td><td>"+String(h.horaIniciaClase).substring(0,5)+"</td><td>"+String(h.horaTerminaClase).substring(0,5)+"</td></tr>"; });
@@ -263,15 +312,7 @@ function aplicarEstilos() {
 async function actualizarPermisos() {
   try {
     const r = await apiFetch("GET", "", null);
-    if (r.datos && r.datos.config) {
-      const btnCrear = obtenerElemento("btnCrear");
-      const btnBorrar = obtenerElemento("btnBorrar");
-      const aviso = obtenerElemento("avisoSoloLectura");
-      if (btnCrear) btnCrear.style.display = r.datos.config.permitir_crear ? "block" : "none";
-      if (btnBorrar) btnBorrar.style.display = r.datos.config.permitir_borrar ? "block" : "none";
-      const soloLectura = !r.datos.config.permitir_crear && !r.datos.config.permitir_borrar;
-      if (aviso) aviso.style.display = soloLectura ? "block" : "none";
-    }
+    if (r.datos && r.datos.config) aplicarEstadoBotones(r.datos.config);
   } catch(e) {}
 }
 
