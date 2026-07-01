@@ -528,16 +528,16 @@ function aplicarEstilos() {
     .btn-menu:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
     .btn-menu:active { transform: translateY(0); }
 
-    .btn-menu-crear { background: linear-gradient(135deg, #0d7c3e, #0a5c2e); }
-    .btn-menu-crear:hover { background: linear-gradient(135deg, #10a04e, #0d7c3e); }
-    .btn-menu-editar { background: linear-gradient(135deg, #1e3a5f, #163050); }
-    .btn-menu-editar:hover { background: linear-gradient(135deg, #2d5a8e, #1e3a5f); }
-    .btn-menu-borrar { background: linear-gradient(135deg, #8b1a1a, #6b1010); }
-    .btn-menu-borrar:hover { background: linear-gradient(135deg, #a52020, #8b1a1a); }
-    .btn-menu-listar { background: linear-gradient(135deg, #4a3a8f, #3a2a6f); }
-    .btn-menu-listar:hover { background: linear-gradient(135deg, #5a4aaf, #4a3a8f); }
-    .btn-menu-salir { background: linear-gradient(135deg, #3a3a3a, #2a2a2a); }
-    .btn-menu-salir:hover { background: linear-gradient(135deg, #4a4a4a, #3a3a3a); }
+    .btn-menu-crear { background: #1e3a5f; }
+    .btn-menu-crear:hover { background: #2d5a8e; }
+    .btn-menu-editar { background: #1e3a5f; }
+    .btn-menu-editar:hover { background: #2d5a8e; }
+    .btn-menu-borrar { background: #1e3a5f; }
+    .btn-menu-borrar:hover { background: #2d5a8e; }
+    .btn-menu-listar { background: #1e3a5f; }
+    .btn-menu-listar:hover { background: #2d5a8e; }
+    .btn-menu-salir { background: #1e3a5f; }
+    .btn-menu-salir:hover { background: #2d5a8e; }
 
     .btn-menu-icono { font-size: 1.3em; flex-shrink: 0; }
     .btn-menu-texto { flex: 1; text-align: left; font-weight: 500; }
