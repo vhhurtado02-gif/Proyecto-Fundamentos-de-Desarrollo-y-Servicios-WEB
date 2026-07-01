@@ -91,10 +91,15 @@
 
     async function iniciarSesion() {
       claveAdmin = document.getElementById("inputClave").value;
+      // Primero obtener el estado actual para no sobrescribirlo
+      const rGet = await fetch("/api/admin");
+      const datosGet = await rGet.json();
+      const configActual = datosGet.ok ? datosGet.config : { permitir_crear: true, permitir_editar: true, permitir_borrar: true };
+      // Validar clave enviando la configuración actual (sin modificarla)
       const r = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear: true, permitir_editar: true, permitir_borrar: true })
+        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear: configActual.permitir_crear, permitir_editar: configActual.permitir_editar, permitir_borrar: configActual.permitir_borrar })
       });
       const datos = await r.json();
       if (r.status === 401) {
