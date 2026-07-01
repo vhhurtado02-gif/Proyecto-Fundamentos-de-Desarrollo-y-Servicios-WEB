@@ -94,7 +94,7 @@
       const r = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear: true, permitir_borrar: true })
+        body: JSON.stringify({ clave_admin: claveAdmin, permitir_crear: true, permitir_editar: true, permitir_borrar: true })
       });
       const datos = await r.json();
       if (r.status === 401) {
@@ -136,7 +136,6 @@
     function actualizarEtiquetas() {
       const crear = document.getElementById("switchCrear").checked;
       const borrar = document.getElementById("switchBorrar").checked;
-      const editar = document.getElementById("switchEditar").checked;
       const editar = document.getElementById("switchEditar").checked;
       document.getElementById("estadoCrear").textContent = crear ? "✅ Permitido" : "🔒 Bloqueado";
       document.getElementById("estadoEditar").textContent = editar ? "✅ Permitido" : "🔒 Bloqueado";
