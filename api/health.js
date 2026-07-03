@@ -12,16 +12,14 @@ module.exports = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
+    console.error("[health] Error de conexión a la base de datos:", err.message);
     return res.status(503).json({
       ok: false,
       servicio: "activo",
       baseDatos: "sin conexión",
-      mensaje: err.message,
-      codigo: err.code,
-      host: process.env.MYSQLHOST || "NO DEFINIDO",
-      port: process.env.MYSQLPORT || "NO DEFINIDO",
-      user: process.env.MYSQLUSER || "NO DEFINIDO",
-      database: process.env.MYSQLDATABASE || "NO DEFINIDO",
+      timestamp: new Date().toISOString(),
     });
   }
 };
+
+
