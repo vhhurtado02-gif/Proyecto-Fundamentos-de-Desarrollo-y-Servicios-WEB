@@ -131,15 +131,15 @@ function construirEstructuraBase() {
       <div class="cabecera-contenido">
         <div class="cabecera-logo">📋</div>
         <div>
-          <h1 id="tituloPrincipal">CIAF - Administracion de Horarios</h1>
-          <p id="subtituloApp">Corporacion Instituto de Administracion y Finanzas</p>
+          <h1 id="tituloPrincipal">CIAF - Administración de Horarios</h1>
+          <p id="subtituloApp">Corporación Instituto de Administración y Finanzas</p>
         </div>
       </div>
     </div>
     <div id="areaPrincipal">
       <div id="vistaMenu">
-        <h2>Menu Principal</h2>
-        <p id="guiaMenu">Selecciona una opcion del menu.</p>
+        <h2>Menú Principal</h2>
+        <p id="guiaMenu">Selecciona una opción del menú.</p>
         <div id="avisoSoloLectura" style="display:none;">🔒 Modo solo lectura — No se permiten cambios.</div>
         <div id="botonesMenu">
           <button id="btnCrear" class="btn-menu btn-menu-crear" onclick="mostrarVistaCrear()">
@@ -227,7 +227,7 @@ function construirEstructuraBase() {
         <button class="btn-accion btn-secundario" onclick="mostrarVistaMenu()">Volver al menu</button>
       </div>
     </div>
-    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programacion y Servicios WEB IV SEMESTRE</p><p class="firma">VHHM</p></div>
+    <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programación y Servicios WEB IV SEMESTRE</p><p class="firma">VHHM</p></div>
   `;
 }
 
