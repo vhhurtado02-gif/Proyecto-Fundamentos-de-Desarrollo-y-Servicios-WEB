@@ -2,3 +2,5 @@ node_modules/
 back/.env
 .env
 *.env
+.vercel
+.env*

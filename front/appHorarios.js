@@ -289,7 +289,7 @@ function mostrarVistaBorrar() {
   obtenerElemento("borrarId").value = "";
   obtenerElemento("vistaBorrar").style.display = "block"; estadoApp.vistaActual = "borrar";
 }
-function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; }
+function mostrarVistaSalir() { ocultarTodasLasVistas(); obtenerElemento("vistaSalir").style.display = "block"; estadoApp.vistaActual = "salir"; }
 function mostrarVistaListado() { ocultarTodasLasVistas(); obtenerElemento("vistaListado").style.display = "block"; estadoApp.vistaActual = "listado"; ejecutarListado(); }
 
 function cargarFacultades(prefijo) {
@@ -945,4 +945,18 @@ async function actualizarPermisos() {
   construirEstructuraBase();
   await mostrarVistaMenu();
   setInterval(actualizarPermisos, 5000);
+
+  // ── Control del botón "atrás" (navegador/celular) ──
+  history.pushState({ trampa: true }, "", location.href);
+  window.addEventListener("popstate", function () {
+    if (estadoApp.vistaActual === "salir") {
+      return; // Ya está en la pantalla de salida: se le permite salir de verdad.
+    }
+    if (estadoApp.vistaActual === "menu") {
+      mostrarVistaSalir();
+    } else {
+      mostrarVistaMenu();
+    }
+    history.pushState({ trampa: true }, "", location.href);
+  });
 })();
