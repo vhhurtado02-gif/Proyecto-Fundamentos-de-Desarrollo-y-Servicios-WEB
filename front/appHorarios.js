@@ -224,7 +224,7 @@ function construirEstructuraBase() {
       <div id="vistaSalir" style="display:none;">
         <h2>Salir del Programa</h2>
         <p>Puede cerrar esta pestana para finalizar.</p>
-        <button class="btn-accion btn-secundario" onclick="mostrarVistaMenu()">Volver al menu</button>
+        <button class="btn-accion btn-secundario" onclick="mostrarVistaMenu()">Volver al menú</button>
       </div>
     </div>
     <div id="piePagina"><p>HorariosDocenteApp | CIAF | Programación y Servicios WEB IV SEMESTRE</p><p class="firma">VHHM</p></div>
