@@ -325,6 +325,9 @@ async function ejecutarCrearHorario() {
   if (!validarFechaNoPasada(fechaClase)) {
     mostrarToast("La fecha no puede ser anterior a la fecha actual.", "error"); return;
   }
+  if (horaTerminaClase <= horaIniciaClase) {
+    mostrarToast("La hora de fin debe ser posterior a la hora de inicio.", "error"); return;
+  }
   try {
     const r = await apiFetch("POST","",{docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase});
     if (r.datos.ok) { mostrarToast("Horario creado correctamente.", "exito"); setTimeout(mostrarVistaMenu,2000); }

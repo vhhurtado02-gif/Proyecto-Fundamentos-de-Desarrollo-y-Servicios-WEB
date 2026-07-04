@@ -38,6 +38,8 @@ module.exports = async (req, res) => {
     const { docente, facultad, carrera, materia, fechaClase, horaIniciaClase, horaTerminaClase } = req.body;
     if (!docente||!facultad||!carrera||!materia||!fechaClase||!horaIniciaClase||!horaTerminaClase)
       return res.status(400).json({ ok: false, mensaje: "Todos los campos son obligatorios." });
+    if (horaTerminaClase <= horaIniciaClase)
+      return res.status(400).json({ ok: false, mensaje: "La hora de fin debe ser posterior a la hora de inicio." });
     try {
       const [resultado] = await poolConexion.query(
         "INSERT INTO horarios_docentes (docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase) VALUES (?,?,?,?,?,?,?)",
