@@ -16,6 +16,17 @@ async function obtenerConfig() {
   }
 }
 
+async function existeCruceHorario(docente, fechaClase, horaIniciaClase, horaTerminaClase, idExcluir) {
+  let sql = "SELECT idHorario FROM horarios_docentes WHERE docente=? AND fechaClase=? AND horaIniciaClase<? AND horaTerminaClase>?";
+  const parametros = [docente, fechaClase, horaTerminaClase, horaIniciaClase];
+  if (idExcluir) {
+    sql += " AND idHorario<>?";
+    parametros.push(idExcluir);
+  }
+  const [filas] = await poolConexion.query(sql, parametros);
+  return filas.length > 0;
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -41,6 +52,8 @@ module.exports = async (req, res) => {
     if (horaTerminaClase <= horaIniciaClase)
       return res.status(400).json({ ok: false, mensaje: "La hora de fin debe ser posterior a la hora de inicio." });
     try {
+      const hayC=await existeCruceHorario(sanitizarTexto(docente), fechaClase, horaIniciaClase, horaTerminaClase);
+      if (hayC) return res.status(409).json({ ok: false, mensaje: "El docente ya tiene un horario asignado que se cruza con este." });
       const [resultado] = await poolConexion.query(
         "INSERT INTO horarios_docentes (docente,facultad,carrera,materia,fechaClase,horaIniciaClase,horaTerminaClase) VALUES (?,?,?,?,?,?,?)",
         [sanitizarTexto(docente),sanitizarTexto(facultad),sanitizarTexto(carrera),sanitizarTexto(materia),fechaClase,horaIniciaClase,horaTerminaClase]
@@ -60,6 +73,8 @@ module.exports = async (req, res) => {
     if (!docente||!facultad||!carrera||!materia||!fechaClase||!horaIniciaClase||!horaTerminaClase)
       return res.status(400).json({ ok: false, mensaje: "Todos los campos son obligatorios." });
     try {
+      const hayC=await existeCruceHorario(sanitizarTexto(docente), fechaClase, horaIniciaClase, horaTerminaClase, id);
+      if (hayC) return res.status(409).json({ ok: false, mensaje: "El docente ya tiene un horario asignado que se cruza con este." });
       const [resultado] = await poolConexion.query(
         "UPDATE horarios_docentes SET docente=?,facultad=?,carrera=?,materia=?,fechaClase=?,horaIniciaClase=?,horaTerminaClase=? WHERE idHorario=?",
         [sanitizarTexto(docente),sanitizarTexto(facultad),sanitizarTexto(carrera),sanitizarTexto(materia),fechaClase,horaIniciaClase,horaTerminaClase,id]
