@@ -25,6 +25,14 @@ let ordenTabla = { campo: null, asc: true };
 let configPermisos = { permitir_crear: true, permitir_borrar: true, permitir_editar: true };
 
 function sanitizarTexto(v) { return !v ? "" : String(v).trim().replace(/[<>"\'`;]/g,"").substring(0,255); }
+function escaparHtml(texto) {
+  return String(texto==null?"":texto)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
 function obtenerElemento(id) { return document.getElementById(id); }
 
 // ── Validacion de fecha: solo fecha actual o superior ──
@@ -438,7 +446,7 @@ async function ejecutarListado() {
       html += '<th class="thOrdenable'+(activo?" thActivo":"")+'" onclick="ordenarPorCampo(\''+col.campo+'\')">'+ col.label+'<span class="flechaOrden">'+flecha+'</span></th>';
     });
     html += "</tr></thead><tbody>";
-    lista.forEach(function(h){ html += "<tr><td data-label='ID'>"+h.idHorario+"</td><td data-label='Docente'>"+h.docente+"</td><td data-label='Facultad'>"+h.facultad+"</td><td data-label='Carrera'>"+h.carrera+"</td><td data-label='Materia'>"+h.materia+"</td><td data-label='Fecha'>"+String(h.fechaClase).substring(0,10)+"</td><td data-label='Inicia'>"+String(h.horaIniciaClase).substring(0,5)+"</td><td data-label='Termina'>"+String(h.horaTerminaClase).substring(0,5)+"</td></tr>"; });
+    lista.forEach(function(h){ html += "<tr><td data-label='ID'>"+h.idHorario+"</td><td data-label='Docente'>"+escaparHtml(h.docente)+"</td><td data-label='Facultad'>"+escaparHtml(h.facultad)+"</td><td data-label='Carrera'>"+escaparHtml(h.carrera)+"</td><td data-label='Materia'>"+escaparHtml(h.materia)+"</td><td data-label='Fecha'>"+String(h.fechaClase).substring(0,10)+"</td><td data-label='Inicia'>"+String(h.horaIniciaClase).substring(0,5)+"</td><td data-label='Termina'>"+String(h.horaTerminaClase).substring(0,5)+"</td></tr>"; });
     html += "</tbody></table></div>"; contenedor.innerHTML = html;
   } catch(e) { resumen.textContent = "Error de conexion con el servidor."; }
 }
