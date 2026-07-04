@@ -23,7 +23,11 @@ module.exports = async (req, res) => {
 
   if (req.method === "POST") {
     const { clave_admin, permitir_crear, permitir_borrar, permitir_editar } = req.body;
-    const CLAVE_ADMIN = process.env.ADMIN_PASSWORD || "ciaf2026";
+    const CLAVE_ADMIN = process.env.ADMIN_PASSWORD;
+    if (!CLAVE_ADMIN) {
+      console.error("[admin] ADMIN_PASSWORD no está configurada en las variables de entorno.");
+      return res.status(500).json({ ok: false, mensaje: "El panel de administración no está configurado correctamente." });
+    }
     if (clave_admin !== CLAVE_ADMIN) return res.status(401).json({ ok: false, mensaje: "Clave incorrecta." });
     try {
       await poolConexion.query("UPDATE app_config SET valor=? WHERE clave='permitir_crear'", [permitir_crear?"true":"false"]);
