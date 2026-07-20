@@ -45,7 +45,7 @@ Este proyecto tiene **dos implementaciones de backend distintas y separadas**. E
 entenderlas antes de tocar código, para no perder tiempo depurando el lugar equivocado:
 
 | | `api/` | `back/` |
-|---|---|---|
+| --- | --- | --- |
 | ¿Qué es? | Funciones serverless de Vercel | Servidor Express tradicional |
 | ¿Dónde corre? | En producción (Vercel) y en local con `vercel dev` | Solo en tu PC, con `node servidor.js` |
 | ¿Se conecta a? | MySQL de Railway (o local, según variables de entorno) | MySQL local propio |
@@ -63,7 +63,7 @@ entenderlas antes de tocar código, para no perder tiempo depurando el lugar equ
 
 ## Estructura de carpetas
 
-```
+```text
 horariosDocenteApp/
 ├── api/                        ← Backend real (funciones serverless, usado en producción)
 │   ├── horarios.js             ← CRUD de horarios + validación de cruces de horario
@@ -130,7 +130,7 @@ que un compañero de equipo lo levante por primera vez.
 Instala esto antes de empezar, si no lo tienes ya:
 
 | Herramienta | Para qué sirve | Cómo verificar que ya la tienes |
-|---|---|---|
+| --- | --- | --- |
 | [Node.js](https://nodejs.org/) (versión 18 o superior) | Ejecutar JavaScript fuera del navegador, y las funciones de `api/` | `node -v` |
 | [Git](https://git-scm.com/) | Clonar y versionar el proyecto | `git --version` |
 | [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) o [MySQL Community Server](https://dev.mysql.com/downloads/mysql/) | Administrar/consultar bases de datos MySQL | Abre Workbench y verifica que puedas conectarte a una instancia |
@@ -147,6 +147,7 @@ cd Proyecto-Fundamentos-de-Desarrollo-y-Servicios-WEB
 ### Paso 2 — Instalar las dependencias
 
 En la **raíz** del proyecto (dependencias que usan las funciones de `api/`):
+
 ```bash
 npm install
 ```
@@ -157,6 +158,7 @@ npm install
 npm install -g vercel
 vercel login
 ```
+
 Sigue las instrucciones en pantalla (te pedirá confirmar el inicio de sesión desde el navegador).
 
 ### Paso 4 — Vincular la carpeta local con el proyecto real de Vercel
@@ -164,6 +166,7 @@ Sigue las instrucciones en pantalla (te pedirá confirmar el inicio de sesión d
 ```bash
 vercel link
 ```
+
 Cuando pregunte, indica que quieres vincular con un proyecto **existente** y selecciona
 `horarios-docentes-app`. Esto crea una carpeta oculta `.vercel/` con la información de vinculación.
 
@@ -172,6 +175,7 @@ Cuando pregunte, indica que quieres vincular con un proyecto **existente** y sel
 ```bash
 vercel env pull .env.local
 ```
+
 Esto trae las variables configuradas para el entorno `development` en Vercel (contraseñas, datos de
 conexión a MySQL, etc.). Si el resultado viene con campos vacíos, probablemente falta crear esas
 variables en el entorno `development` — ver la sección de
@@ -183,8 +187,10 @@ detalle de cómo crearlas.
 ```bash
 vercel dev
 ```
+
 Cuando muestre `Ready! Available at http://localhost:3000`, abre en el navegador:
-```
+
+```text
 http://localhost:3000/front/index.html
 http://localhost:3000/front/admin.html
 ```
@@ -224,7 +230,7 @@ Configuradas en *Project → Settings → Environment Variables*, para los entor
 **Preview**:
 
 | Variable | Descripción |
-|---|---|
+| --- | --- |
 | `MYSQLHOST` | Host del **proxy público** de MySQL en Railway (⚠️ no el host interno `*.railway.internal`, que solo funciona dentro de la red privada de Railway) |
 | `MYSQLPORT` | Puerto del proxy público (Railway lo asigna; no siempre es el 3306 por defecto) |
 | `MYSQLUSER` | Usuario de MySQL (normalmente `root`) |
@@ -240,7 +246,8 @@ Configuradas en *Project → Settings → Environment Variables*, para los entor
 
 Para encontrar los datos de conexión pública de tu base de datos en Railway: entra al servicio MySQL en
 Railway → pestaña **Variables** → campo `MYSQL_PUBLIC_URL`, con el formato:
-```
+
+```text
 mysql://usuario:contraseña@host_publico:puerto/nombre_basedatos
 ```
 
@@ -298,6 +305,7 @@ desarrollo y pruebas.
 ### Paso 1 — Tener la base de datos local creada
 
 En MySQL Workbench (o el cliente que uses), conectado a tu instancia local:
+
 1. Abre `variables/horariosdocentes.sql`.
 2. Ejecuta el script completo.
 3. Verifica que exista el schema `horariosdocentes` con la tabla `horarios_docentes`.
@@ -307,7 +315,7 @@ En MySQL Workbench (o el cliente que uses), conectado a tu instancia local:
 Después de haber corrido `vercel env pull .env.local` al menos una vez (Opción A), edita el archivo
 **`.env.local`** (en la raíz del proyecto) y reemplaza estas 5 líneas:
 
-```
+```text
 MYSQLHOST="127.0.0.1"
 MYSQLPORT="3306"
 MYSQLUSER="root"
@@ -353,7 +361,8 @@ rutas. Se documenta por completitud/histórico.
 ### Paso 2 — Configurar variables de entorno
 
 Copie `variables/.env.example` como `back/.env` y ajuste la contraseña real:
-```
+
+```text
 HOST=127.0.0.1
 PORT=8080
 DB_HOST=127.0.0.1
@@ -362,6 +371,7 @@ DB_USER=root
 DB_PASSWORD=tu_contraseña_aqui
 DB_NAME=horariosdocentes
 ```
+
 > `back/.env` nunca debe subirse a git (ya está en `.gitignore`).
 
 ### Paso 3 — Instalar dependencias
@@ -370,6 +380,7 @@ DB_NAME=horariosdocentes
 cd back
 npm install
 ```
+
 Instala: `express`, `mysql2`, `dotenv`, `cors`.
 
 ### Paso 4 — Iniciar el servidor
@@ -377,8 +388,10 @@ Instala: `express`, `mysql2`, `dotenv`, `cors`.
 ```cmd
 node servidor.js
 ```
+
 Deberías ver:
-```
+
+```text
 [BD] Conexión a MySQL establecida correctamente.
 =================================================
   horariosDocenteApp - Servidor iniciado
@@ -388,7 +401,7 @@ Deberías ver:
 
 ### Paso 5 — Abrir en el navegador
 
-```
+```text
 http://127.0.0.1:8080
 ```
 
@@ -399,7 +412,7 @@ http://127.0.0.1:8080
 ### `api/` — los que realmente usa la aplicación (producción y `vercel dev`)
 
 | Método | Ruta | Descripción |
-|--------|------|-------------|
+| -------- | ------ | ------------- |
 | GET | `/api/health` | Verifica que el servicio y la conexión a la BD estén activos |
 | GET | `/api/horarios` | Listado completo de horarios |
 | POST | `/api/horarios` | Crear horario (body JSON). Valida campos obligatorios, hora fin > hora inicio, y que no haya cruce de horario para el mismo docente |
@@ -411,7 +424,7 @@ http://127.0.0.1:8080
 ### `back/` — solo si corres el servidor Express local
 
 | Método | Ruta | Descripción |
-|--------|------|-------------|
+| -------- | ------ | ------------- |
 | GET | `/api/horarios/list` | Listado con búsqueda y orden |
 | GET | `/api/horarios/list-basic` | Listado sin filtros |
 | GET | `/api/horarios/byidHorario?idHorario=N` | Buscar por ID |
@@ -484,6 +497,7 @@ antes de copiar credenciales.
 
 **Sigo viendo los datos de producción (Railway) aunque configuré `.env.local` con datos locales**
 → Causas más comunes, en orden de probabilidad:
+
 1. Hay **otro proceso `vercel dev` corriendo en segundo plano** en otro puerto o terminal, y el
    navegador (o una pestaña vieja) sigue apuntando a ese proceso viejo. Solución: cierra todas las
    terminales, revisa el Administrador de Tareas de Windows y termina cualquier proceso `node.exe`
@@ -505,6 +519,7 @@ guardado automático activado) — revisa el final del archivo en tu editor y el
 **`vercel dev` falla con `Function 'api/horarios.js' failed with exit code 3221225786` (Windows)**
 → Ese código corresponde a un error de "DLL no encontrada" de Windows, típicamente tras cerrar procesos
 `node.exe` de forma forzada. Borra el caché de Vercel y reinstala dependencias:
+
 ```bash
 Remove-Item -Recurse -Force .vercel\cache -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
